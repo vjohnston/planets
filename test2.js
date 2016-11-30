@@ -11,6 +11,8 @@ var object;		// object traversing planets
 var origin = THREE.Vector3(0,0,0);
 var raycaster = new THREE.Raycaster();	// set up ray caster
 var earthMesh;
+var rotVx = 0.0; // rotational velocity around the current planet, left and right
+var rotVy = 0.0;
 
 window.onload = function init(){
 	// set up renderer
@@ -26,12 +28,12 @@ window.onload = function init(){
 	// set up scene and camera
 	scene	= new THREE.Scene();
 	camera	= new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.01, 100 );
-	camera.position.z = 1;
+	camera.position.z = 3;
 
 	// add ambient lighting
 	var ambientLight = new THREE.AmbientLight( 0x222222, 1)
 	scene.add( ambientLight )
-	// add directional lighting
+  // add directional lighting
 	var dirLight = new THREE.DirectionalLight( 0xffffff, 1 )
 	dirLight.position.set(5,5,5)
 	scene.add( dirLight )
@@ -109,7 +111,10 @@ window.onload = function init(){
 	object.receiveShadow	= true
 	object.castShadow	= true
 	scene.add(object)
-
+  //camera.position.y = -1
+ 	/****comment below to stop camera moving with the object****/
+  object.add(camera)
+  camera.useQuaternion = false // so it does not undergo the same rotations as the ball
 
 	// camera control
 	var mouse	= {x : 0, y : 0}
@@ -126,9 +131,42 @@ window.onload = function init(){
 	onRenderFcts.push(function(delta, now){
 		//camera.position.x = (xpos)
 		//camera.position.y = (ypos)
-		camera.position.x += (mouse.x*5 - camera.position.x) * (delta*3)
-		camera.position.y += (mouse.y*5 - camera.position.y) * (delta*3)
-		camera.lookAt( scene.position )
+//		camera.position.x += (mouse.x*5 - camera.position.x) * (delta*3)
+//		camera.position.y += (mouse.y*5 - camera.position.y) * (delta*3)
+ /***comment below and uncomment above to see the original mouse driven camera****/
+  //camera.lookAt( object.position ) // this was making me motion sick
+	if (rotVx != 0) {
+	object.quaternion.multiply(new THREE.Quaternion(0, Math.sin(rotVx), 0, Math.cos(rotVx)));
+	}
+	
+	if (rotVy != 0) {
+	object.quaternion.multiply(new THREE.Quaternion(Math.sin(rotVy), 0, 0, Math.cos(rotVy)));
+	}
+	
+	var qx = object.quaternion.x;
+	var qy = object.quaternion.y;
+	var qz = object.quaternion.z;
+	var qw = object.quaternion.w;
+	xpos = 2 * (qy * qw + qz * qx) * radius;
+	ypos = 2 * (qz * qy - qw * qx) * radius;
+	zpos = ((qz * qz + qw * qw) - (qx * qx + qy * qy))* radius;
+	object.position.setX(xpos);
+	object.position.setY(ypos);
+	object.position.setZ(zpos);
+										
+	if (rotVx < 0) {
+	rotVx += 0.001
+	}
+	if (rotVx > 0) {
+	rotVx -= 0.001
+	}
+	if (rotVy < 0) {
+	rotVy += 0.001
+	}
+	if (rotVy > 0) {
+	rotVy -= 0.001
+	}
+								
 	})
 	
 	// render scene
@@ -153,45 +191,54 @@ window.onload = function init(){
 }
 
 window.addEventListener("keydown", function(e){
-    if (e.keyCode === 37){ // left
-	    object.quaternion.multiply(new THREE.Quaternion(0, Math.sin(-0.01), 0, Math.cos(-0.01)));
+                        
+  if (e.keyCode === 37){ // left
+      if (rotVx >= -0.3)
+          rotVx -= 0.015
+//	    object.quaternion.multiply(new THREE.Quaternion(0, Math.sin(-0.01), 0, Math.cos(-0.01)));
 	}
 
 	if (e.keyCode === 39) { // right
-	    object.quaternion.multiply(new THREE.Quaternion(0, Math.sin(0.01), 0, Math.cos(0.01)));
+      if (rotVx <= 0.3)
+          rotVx += 0.015
+//	    object.quaternion.multiply(new THREE.Quaternion(0, Math.sin(0.01), 0, Math.cos(0.01)));
 	}
 
 	if (e.keyCode === 38) { // up
-	    object.quaternion.multiply(new THREE.Quaternion(Math.sin(-0.01), 0, 0, Math.cos(-0.01)));
+      if (rotVy >= -0.3)
+				 rotVy -= 0.015;
+//	    object.quaternion.multiply(new THREE.Quaternion(Math.sin(-0.01), 0, 0, Math.cos(-0.01)));
 	}
 
 	if (e.keyCode === 40) { // down
-	    object.quaternion.multiply(new THREE.Quaternion(Math.sin(0.01), 0, 0, Math.cos(0.01)));
+			if (rotVy >= -0.3)
+        rotVy += 0.015
+//	    object.quaternion.multiply(new THREE.Quaternion(Math.sin(0.01), 0, 0, Math.cos(0.01)));
 	}
-
-	var qx = object.quaternion.x;
-	var qy = object.quaternion.y;
-	var qz = object.quaternion.z;
-	var qw = object.quaternion.w;
-	xpos = 2 * (qy * qw + qz * qx) * radius;
-	ypos = 2 * (qz * qy - qw * qx) * radius;
-	zpos = ((qz * qz + qw * qw) - (qx * qx + qy * qy))* radius;
-	object.position.setX(xpos);
-	object.position.setY(ypos);
-	object.position.setZ(zpos);
+												
+//	var qx = object.quaternion.x;
+//	var qy = object.quaternion.y;
+//	var qz = object.quaternion.z;
+//	var qw = object.quaternion.w;
+//	xpos = 2 * (qy * qw + qz * qx) * radius;
+//	ypos = 2 * (qz * qy - qw * qx) * radius;
+//	zpos = ((qz * qz + qw * qw) - (qx * qx + qy * qy))* radius;
+//	object.position.setX(xpos);
+//	object.position.setY(ypos);
+//	object.position.setZ(zpos);
 
 	var direction = THREE.Vector3(xpos, ypos, zpos);
 	raycaster.set(origin, direction);
 
-	var intersects = raycaster.intersectObject(earthMesh);
-	if (intersects.length() > 0)
-	{
-		object.position.set(0,0,0);
-		object.lookAt(intersects[0].face.normal);
-		object.position.copy(intersects[0].point);
-		alert("hi");
-		console.log("hi");
-	}
+	//var intersects = raycaster.intersectObject(earthMesh);
+//	if (intersects.length() > 0)
+//	{
+//		object.position.set(0,0,0);
+//		object.lookAt(intersects[0].face.normal);
+//		object.position.copy(intersects[0].point);
+//		alert("hi");
+//		console.log("hi");
+//	}
 });
 
 function setUpClouds(){
