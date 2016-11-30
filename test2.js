@@ -6,6 +6,7 @@ var xpos=0.0099;	// x position of object
 var ypos=0.0; 		// y position of object
 var zpos=0.53;		// z position of object
 var radius = 0.53;	// radius of earth
+var radObj = 0.53; // the radial position of the object (for the jumping)
 
 var object;		// object traversing planets
 var origin = THREE.Vector3(0,0,0);
@@ -13,6 +14,7 @@ var raycaster = new THREE.Raycaster();	// set up ray caster
 var earthMesh;
 var rotVx = 0.0; // rotational velocity around the current planet, left and right
 var rotVy = 0.0;
+var upV = 0.0;
 
 window.onload = function init(){
 	// set up renderer
@@ -142,17 +144,19 @@ window.onload = function init(){
 	if (rotVy != 0) {
 	object.quaternion.multiply(new THREE.Quaternion(Math.sin(rotVy), 0, 0, Math.cos(rotVy)));
 	}
-	
+	// to do, make this equations better so we increase the linear velocity rather than radial velocity at a constant speed, that
+										// will make jumping and moving to planets much better
 	var qx = object.quaternion.x;
 	var qy = object.quaternion.y;
 	var qz = object.quaternion.z;
 	var qw = object.quaternion.w;
-	xpos = 2 * (qy * qw + qz * qx) * radius;
-	ypos = 2 * (qz * qy - qw * qx) * radius;
-	zpos = ((qz * qz + qw * qw) - (qx * qx + qy * qy))* radius;
+	xpos = 2 * (qy * qw + qz * qx) * radObj;
+	ypos = 2 * (qz * qy - qw * qx) * radObj;
+	zpos = ((qz * qz + qw * qw) - (qx * qx + qy * qy))* radObj;
 	object.position.setX(xpos);
 	object.position.setY(ypos);
 	object.position.setZ(zpos);
+	
 										
 	if (rotVx < 0) {
 	rotVx += 0.001
@@ -166,6 +170,10 @@ window.onload = function init(){
 	if (rotVy > 0) {
 	rotVy -= 0.001
 	}
+										if (radObj > radius) {
+											upV -= 0.01 // the downwards
+											radObj += upV
+										}
 								
 	})
 	
@@ -191,21 +199,26 @@ window.onload = function init(){
 }
 
 window.addEventListener("keydown", function(e){
-                        
+  
+												if (e.keyCode == 32){
+													upV = 0.5 // launch upwards
+													radObj += upV
+												}
+												
   if (e.keyCode === 37){ // left
-      if (rotVx >= -0.3)
+      if (rotVx >= -0.2)
           rotVx -= 0.015
 //	    object.quaternion.multiply(new THREE.Quaternion(0, Math.sin(-0.01), 0, Math.cos(-0.01)));
 	}
 
 	if (e.keyCode === 39) { // right
-      if (rotVx <= 0.3)
+      if (rotVx <= 0.2)
           rotVx += 0.015
 //	    object.quaternion.multiply(new THREE.Quaternion(0, Math.sin(0.01), 0, Math.cos(0.01)));
 	}
 
 	if (e.keyCode === 38) { // up
-      if (rotVy >= -0.3)
+      if (rotVy >= -0.2)
 				 rotVy -= 0.015;
 //	    object.quaternion.multiply(new THREE.Quaternion(Math.sin(-0.01), 0, 0, Math.cos(-0.01)));
 	}
