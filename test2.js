@@ -5,16 +5,21 @@ var camera;
 var xpos=0.0099;	// x position of object
 var ypos=0.0; 		// y position of object
 var zpos=0.53;		// z position of object
-var radius = 0.53;	// radius of earth
+var eRadius = 0.53;	// radius of earth
+var mRadius = 0.53/5;
 var radObj = 0.53; // the radial position of the object (for the jumping)
+var radius = eRadius;
 
 var object;		// object traversing planets
-var origin = THREE.Vector3(0,0,0);
+var originObj = new THREE.Vector3(0, 0, 0);
+var origin = new THREE.Vector3(0,0,0);
+var mOrigin = new THREE.Vector3(0.5, 0.5, 0.5);
 var raycaster = new THREE.Raycaster();	// set up ray caster
 var earthMesh;
 var rotVx = 0.0; // rotational velocity around the current planet, left and right
 var rotVy = 0.0;
 var upV = 0.0;
+var gravField = 0.2;
 
 window.onload = function init(){
 	// set up renderer
@@ -109,6 +114,7 @@ window.onload = function init(){
 	object.position.setX(xpos)
 	object.position.setY(ypos)
 	object.position.setZ(zpos)
+ 	object.up.set(xpos, ypos, zpos)
 	object.scale.multiplyScalar(1/5)
 	object.receiveShadow	= true
 	object.castShadow	= true
@@ -117,7 +123,8 @@ window.onload = function init(){
  	/****comment below to stop camera moving with the object****/
   object.add(camera)
   camera.useQuaternion = false // so it does not undergo the same rotations as the ball
-
+	//originObj = new THREE.Vector3(origin.x, origin.y, origin.z)
+ 
 	// camera control
 	var mouse	= {x : 0, y : 0}
 	document.addEventListener('mousemove', function(event){
@@ -137,6 +144,7 @@ window.onload = function init(){
 //		camera.position.y += (mouse.y*5 - camera.position.y) * (delta*3)
  /***comment below and uncomment above to see the original mouse driven camera****/
   //camera.lookAt( object.position ) // this was making me motion sick
+										
 	if (rotVx != 0) {
 	object.quaternion.multiply(new THREE.Quaternion(0, Math.sin(rotVx*radius/radObj), 0, Math.cos(rotVx*radius/radObj)));
 	}
@@ -151,13 +159,22 @@ window.onload = function init(){
 	var qy = object.quaternion.y;
 	var qz = object.quaternion.z;
 	var qw = object.quaternion.w;
-	xpos = 2 * (qy * qw + qz * qx) * radObj;
-	ypos = 2 * (qz * qy - qw * qx) * radObj;
-	zpos = ((qz * qz + qw * qw) - (qx * qx + qy * qy))* radObj;
+	xpos = 2 * (qy * qw + qz * qx) * radObj + originObj.x;
+	ypos = 2 * (qz * qy - qw * qx) * radObj + originObj.y;
+	zpos = ((qz * qz + qw * qw) - (qx * qx + qy * qy))* radObj + originObj.z;
 	object.position.setX(xpos);
 	object.position.setY(ypos);
 	object.position.setZ(zpos);
 	
+	// set new origin
+	if (object.position.distanceTo(mOrigin) < gravField) {
+			object.lookAt(new THREE.Vector3(mOrigin))
+			object.rotation.y = Math.PI/2
+			upV = 0.0
+			originObj = new THREE.Vector3(mOrigin.x, mOrigin.y, mOrigin.z)
+			//radius = mRadius // I have to think through how the radius switching should work, so far the results are bad
+			console.log("hit moon")
+	}
 										
 	if (rotVx < 0) {
 	rotVx += 0.001
@@ -232,29 +249,6 @@ window.addEventListener("keydown", function(e){
 //	    object.quaternion.multiply(new THREE.Quaternion(Math.sin(0.01), 0, 0, Math.cos(0.01)));
 	}
 												
-//	var qx = object.quaternion.x;
-//	var qy = object.quaternion.y;
-//	var qz = object.quaternion.z;
-//	var qw = object.quaternion.w;
-//	xpos = 2 * (qy * qw + qz * qx) * radius;
-//	ypos = 2 * (qz * qy - qw * qx) * radius;
-//	zpos = ((qz * qz + qw * qw) - (qx * qx + qy * qy))* radius;
-//	object.position.setX(xpos);
-//	object.position.setY(ypos);
-//	object.position.setZ(zpos);
-
-	var direction = THREE.Vector3(xpos, ypos, zpos);
-	raycaster.set(origin, direction);
-
-	//var intersects = raycaster.intersectObject(earthMesh);
-//	if (intersects.length() > 0)
-//	{
-//		object.position.set(0,0,0);
-//		object.lookAt(intersects[0].face.normal);
-//		object.position.copy(intersects[0].point);
-//		alert("hi");
-//		console.log("hi");
-//	}
 });
 
 function setUpClouds(){
