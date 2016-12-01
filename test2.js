@@ -138,11 +138,12 @@ window.onload = function init(){
  /***comment below and uncomment above to see the original mouse driven camera****/
   //camera.lookAt( object.position ) // this was making me motion sick
 	if (rotVx != 0) {
-	object.quaternion.multiply(new THREE.Quaternion(0, Math.sin(rotVx), 0, Math.cos(rotVx)));
+	object.quaternion.multiply(new THREE.Quaternion(0, Math.sin(rotVx*radius/radObj), 0, Math.cos(rotVx*radius/radObj)));
 	}
 	
 	if (rotVy != 0) {
-	object.quaternion.multiply(new THREE.Quaternion(Math.sin(rotVy), 0, 0, Math.cos(rotVy)));
+	object.quaternion.multiply(new THREE.Quaternion(Math.sin(rotVy*radius/radObj), 0, 0, Math.cos(rotVy*radius/radObj)));
+										// the radius/radobj factor makes it closer to linear velocity, at least while jumping
 	}
 	// to do, make this equations better so we increase the linear velocity rather than radial velocity at a constant speed, that
 										// will make jumping and moving to planets much better
@@ -170,10 +171,10 @@ window.onload = function init(){
 	if (rotVy > 0) {
 	rotVy -= 0.001
 	}
-										if (radObj > radius) {
-											upV -= 0.01 // the downwards
-											radObj += upV
-										}
+	if (radObj > radius) {
+		upV -= 0.005 // the downwards
+		radObj += upV
+	}
 								
 	})
 	
@@ -200,10 +201,12 @@ window.onload = function init(){
 
 window.addEventListener("keydown", function(e){
   
-												if (e.keyCode == 32){
-													upV = 0.5 // launch upwards
-													radObj += upV
-												}
+	if (e.keyCode == 32){
+	 if (radObj <= radius) {
+			 upV = 0.2 // launch upwards
+			 radObj += upV
+	 }
+	}
 												
   if (e.keyCode === 37){ // left
       if (rotVx >= -0.2)
