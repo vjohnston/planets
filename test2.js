@@ -159,7 +159,7 @@ window.onload = function init(){
 	var qy = object.quaternion.y;
 	var qz = object.quaternion.z;
 	var qw = object.quaternion.w;
-	xpos = 2 * (qy * qw + qz * qx) * radObj + originObj.x;
+	xpos = 2 * (qy * qw + qz * qx) * radObj + originObj.x; // trying to just translate
 	ypos = 2 * (qz * qy - qw * qx) * radObj + originObj.y;
 	zpos = ((qz * qz + qw * qw) - (qx * qx + qy * qy))* radObj + originObj.z;
 	object.position.setX(xpos);
@@ -172,7 +172,6 @@ window.onload = function init(){
 			// point towards moon
 			object.lookAt(new THREE.Vector3(mOrigin)) // to do: make this smoother with a lerp and make sure it goes on center
 			object.position.set(mOrigin)
-			object.rotation.y = Math.PI/2
 			upV = 0.0
 			originObj = new THREE.Vector3(mOrigin.x, mOrigin.y, mOrigin.z)
 			radius = mRadius*5 // I have to think through how the radius switching should work, so far the results are bad
@@ -181,13 +180,10 @@ window.onload = function init(){
 			console.log("hit moon")
 			console.log(object.position)
 	}
-			console.log(originObj != eOrigin)
 			console.log(originObj)
-			console.log(eOrigin)
 	if (!originObj.equals(eOrigin) && object.position.distanceTo(eOrigin) < eRadius) {
 		console.log(originObj != eOrigin)
 		object.lookAt(new THREE.Vector3(eOrigin))
-	//	object.rotation.y = Math.Pi/2
 		upV = 0.0
 		originObj = new THREE.Vector3(eOrigin.x, eOrigin.y, eOrigin.z)
 		radius = eRadius
