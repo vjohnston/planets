@@ -6,13 +6,13 @@ var xpos=0.0099;	// x position of object
 var ypos=0.0; 		// y position of object
 var zpos=0.53;		// z position of object
 var eRadius = 0.53;	// radius of earth
-var mRadius = 0.53/5;
+var mRadius = 0.53/5; // scaled down by 5, but that seems too small
 var radObj = 0.53; // the radial position of the object (for the jumping)
 var radius = eRadius;
 
 var object;		// object traversing planets
 var originObj = new THREE.Vector3(0, 0, 0);
-var origin = new THREE.Vector3(0,0,0);
+var eOrigin = new THREE.Vector3(0,0,0);
 var mOrigin = new THREE.Vector3(0.5, 0.5, 0.5);
 var raycaster = new THREE.Raycaster();	// set up ray caster
 var earthMesh;
@@ -165,29 +165,45 @@ window.onload = function init(){
 	object.position.setX(xpos);
 	object.position.setY(ypos);
 	object.position.setZ(zpos);
+	console.log(object.position)
 	
 	// set new origin
-	if (object.position.distanceTo(mOrigin) < gravField) {
-			object.lookAt(new THREE.Vector3(mOrigin))
+	if (object.position.distanceTo(mOrigin) < gravField + mRadius) {
+			object.lookAt(new THREE.Vector3(mOrigin)) // to do, make this smoother with a lerp and make sure it goes on center
+			object.position.set(mOrigin)
 			object.rotation.y = Math.PI/2
 			upV = 0.0
 			originObj = new THREE.Vector3(mOrigin.x, mOrigin.y, mOrigin.z)
-			//radius = mRadius // I have to think through how the radius switching should work, so far the results are bad
+			radius = mRadius*5 // I have to think through how the radius switching should work, so far the results are bad
+			radObj = mRadius*5 + gravField
+			object.quaternion.set(0, 0, 0, 1).normalize()
 			console.log("hit moon")
+			console.log(object.position)
+	}
+//	if (object.position.distanceTo(eOrigin) < gravField + eRadius) {
+//		object.lookAt(new THREE.Vector3(eOrigin))
+//		object.rotation.y = Math.Pi/2
+//		upV = 0.0
+//		originObj = new THREE.Vector3(eOrigin.x, eOrigin.y, eOrigin.z)
+//		radius = eRadius
+//		radObj = eRadius + gravField
+//	}
+	
+	if (rotVx < -0.005) {
+	rotVx += 0.002
+	} else if (rotVx > 0.005) {
+	rotVx -= 0.002
+	} else {
+		rotVx = 0
+	} // clamp down to zero to prevent drifting
+	if (rotVy < -0.005) {
+	rotVy += 0.002
+	} else if (rotVy > 0.005) {
+	rotVy -= 0.002
+	} else {
+	rotVy = 0
 	}
 										
-	if (rotVx < 0) {
-	rotVx += 0.001
-	}
-	if (rotVx > 0) {
-	rotVx -= 0.001
-	}
-	if (rotVy < 0) {
-	rotVy += 0.001
-	}
-	if (rotVy > 0) {
-	rotVy -= 0.001
-	}
 	if (radObj > radius) {
 		upV -= 0.005 // the downwards
 		radObj += upV
@@ -226,25 +242,25 @@ window.addEventListener("keydown", function(e){
 	}
 												
   if (e.keyCode === 37){ // left
-      if (rotVx >= -0.2)
+      if (rotVx >= -0.08)
           rotVx -= 0.015
 //	    object.quaternion.multiply(new THREE.Quaternion(0, Math.sin(-0.01), 0, Math.cos(-0.01)));
 	}
 
 	if (e.keyCode === 39) { // right
-      if (rotVx <= 0.2)
+      if (rotVx <= 0.08)
           rotVx += 0.015
 //	    object.quaternion.multiply(new THREE.Quaternion(0, Math.sin(0.01), 0, Math.cos(0.01)));
 	}
 
 	if (e.keyCode === 38) { // up
-      if (rotVy >= -0.2)
+      if (rotVy >= -0.08)
 				 rotVy -= 0.015;
 //	    object.quaternion.multiply(new THREE.Quaternion(Math.sin(-0.01), 0, 0, Math.cos(-0.01)));
 	}
 
 	if (e.keyCode === 40) { // down
-			if (rotVy >= -0.3)
+			if (rotVy >= -0.08)
         rotVy += 0.015
 //	    object.quaternion.multiply(new THREE.Quaternion(Math.sin(0.01), 0, 0, Math.cos(0.01)));
 	}
