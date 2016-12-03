@@ -173,7 +173,7 @@ window.onload = function init(){
 			object.lookAt(new THREE.Vector3(mOrigin)) // to do: make this smoother with a lerp and make sure it goes on center
 			object.position.set(mOrigin)
 			upV = 0.0
-			originObj = new THREE.Vector3(mOrigin.x, mOrigin.y, mOrigin.z)
+			originObj = new THREE.Vector3(mOrigin.x , mOrigin.y, mOrigin.z)
 			radius = mRadius*5 // I have to think through how the radius switching should work, so far the results are bad
 			radObj = mRadius*5 + gravField
 			object.quaternion.set(0, 0, 0, 1).normalize() // set quaternion back to identity
