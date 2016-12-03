@@ -6,7 +6,7 @@ var xpos=0.0099;	// x position of object
 var ypos=0.0; 		// y position of object
 var zpos=0.53;		// z position of object
 var eRadius = 0.53;	// radius of earth
-var mRadius = 0.53/5; // scaled down by 5, but that seems too small
+var mRadius = 0.60/5; // scaled down by 5, but that seems too small
 var radObj = 0.53; // the radial position of the object (for the jumping)
 var radius = eRadius;
 
@@ -20,6 +20,12 @@ var rotVx = 0.0; // rotational velocity around the current planet, left and righ
 var rotVy = 0.0;
 var upV = 0.0;
 var gravField = 0.2;
+
+var onPlanetA = 1.0;
+var originLast
+var originNext
+var lookVector = new THREE.Vector3(0, 0, 0)
+
 
 window.onload = function init(){
 	// set up renderer
@@ -100,7 +106,7 @@ window.onload = function init(){
  	moon.position.set(0.5,0.5,0.5)
 	moon.receiveShadow	= true
 	moon.castShadow	= true
-	container.add(moon)
+	scene.add(moon)
 	
 
 	// create another object
@@ -122,6 +128,8 @@ window.onload = function init(){
   //camera.position.y = -1
  	/****comment below to stop camera moving with the object****/
   object.add(camera)
+ 	camera.position.y = -2.5
+ 	camera.lookAt(object.position)
   camera.useQuaternion = false // so it does not undergo the same rotations as the ball
 	//originObj = new THREE.Vector3(origin.x, origin.y, origin.z)
  
@@ -166,12 +174,19 @@ window.onload = function init(){
 	object.position.setY(ypos);
 	object.position.setZ(zpos);
 	console.log(object.position)
-	
+										
+	if (onPlanetA < 1.0) {
+	// originObj.lerpVectors(originNext, originLast, onPlanetA)
+	 //radObj = onPlanetA * radius
+	 onPlanetA += 0.002
+	}
 	// set new origin
 	if (!originObj.equals(mOrigin) && object.position.distanceTo(mOrigin) < gravField + mRadius) {
 			// point towards moon
-			object.lookAt(new THREE.Vector3(mOrigin)) // to do: make this smoother with a lerp and make sure it goes on center
-			object.position.set(mOrigin)
+			onPlanetA = 0.0
+		//	object.position.set(mOrigin)
+			originLast = new THREE.Vector3(eOrigin)
+			originNext = new THREE.Vector3(mOrigin.x, mOrigin.y, mOrigin.z)
 			upV = 0.0
 			originObj = new THREE.Vector3(mOrigin.x , mOrigin.y, mOrigin.z)
 			radius = mRadius // I have to think through how the radius switching should work, so far the results are bad
@@ -183,7 +198,9 @@ window.onload = function init(){
 			console.log(originObj)
 	if (!originObj.equals(eOrigin) && object.position.distanceTo(eOrigin) < eRadius) {
 		console.log(originObj != eOrigin)
-		object.lookAt(new THREE.Vector3(eOrigin))
+		//object.lookAt(new THREE.Vector3(eOrigin))
+		originLast = new THREE.Vector3(mOrigin.x, mOrigin.y, mOrigin.z)
+		originNext = new THREE.Vector3(eOrigin.x, eOrigin.y, eOrigin.z)
 		upV = 0.0
 		originObj = new THREE.Vector3(eOrigin.x, eOrigin.y, eOrigin.z)
 		radius = eRadius
@@ -191,16 +208,16 @@ window.onload = function init(){
 	}
 	
 	if (rotVx < -0.005) {
-	rotVx += 0.002
+	rotVx += 0.001
 	} else if (rotVx > 0.005) {
-	rotVx -= 0.002
+	rotVx -= 0.001
 	} else {
 		rotVx = 0
 	} // clamp down to zero to prevent drifting
 	if (rotVy < -0.005) {
-	rotVy += 0.002
+	rotVy += 0.001
 	} else if (rotVy > 0.005) {
-	rotVy -= 0.002
+	rotVy -= 0.001
 	} else {
 	rotVy = 0
 	}
@@ -237,7 +254,7 @@ window.addEventListener("keydown", function(e){
   
 	if (e.keyCode == 32){
 	 if (radObj <= radius) {
-			 upV = 0.2 // launch upwards
+			 upV = 0.1 // launch upwards
 			 radObj += upV
 	 }
 	}
