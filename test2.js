@@ -96,8 +96,8 @@ window.onload = function init(){
 		bumpScale: 0.002,
 	})
 	var moon = new THREE.Mesh(moonGeometry, moonMaterial)
-	moon.position.set(0.5,0.5,0.5)
 	moon.scale.multiplyScalar(1/5)
+ 	moon.position.set(0.5,0.5,0.5)
 	moon.receiveShadow	= true
 	moon.castShadow	= true
 	container.add(moon)
@@ -174,8 +174,8 @@ window.onload = function init(){
 			object.position.set(mOrigin)
 			upV = 0.0
 			originObj = new THREE.Vector3(mOrigin.x , mOrigin.y, mOrigin.z)
-			radius = mRadius*5 // I have to think through how the radius switching should work, so far the results are bad
-			radObj = mRadius*5 + gravField
+			radius = mRadius // I have to think through how the radius switching should work, so far the results are bad
+			radObj = mRadius + gravField
 			object.quaternion.set(0, 0, 0, 1).normalize() // set quaternion back to identity
 			console.log("hit moon")
 			console.log(object.position)
