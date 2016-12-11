@@ -19,12 +19,17 @@ var earthMesh;
 var rotVx = 0.0; // rotational velocity around the current planet, left and right
 var rotVy = 0.0;
 var upV = 0.0;
-var gravField = 0.2;
+var gravField = 0.08;
 
-var onPlanetA = 1.0;
-var originLast
-var originNext
-var lookVector = new THREE.Vector3(0, 0, 0)
+//arrays to loop through for gravity pull check
+var radii = [eRadius, mRadius];
+var origins = [eOrigin, mOrigin];
+var numPlanets = 2;
+
+//var onPlanetA = 1.0;
+//var originLast
+//var originNext
+//var lookVector = new THREE.Vector3(0, 0, 0)
 
 var character;
 var feet;
@@ -210,29 +215,27 @@ window.onload = function init(){
 	character.position.setX(xpos);
 	character.position.setY(ypos);
 	character.position.setZ(zpos);
-	console.log(object.position)
+//	console.log(object.position)
 										
-	if (onPlanetA < 1.0) {
-	// originObj.lerpVectors(originNext, originLast, onPlanetA)
-	 //radObj = onPlanetA * radius
-	 onPlanetA += 0.002
-	}
+//	if (onPlanetA < 1.0) {
+//	// originObj.lerpVectors(originNext, originLast, onPlanetA)
+//	 //radObj = onPlanetA * radius
+//	 onPlanetA += 0.002
+//	}
 	// set new origin
-	if (!originObj.equals(mOrigin) && character.position.distanceTo(mOrigin) < gravField + mRadius) {
-			// point towards moon
-			onPlanetA = 0.0
-		//	object.position.set(mOrigin)
-			originLast = new THREE.Vector3(eOrigin)
-			originNext = new THREE.Vector3(mOrigin.x, mOrigin.y, mOrigin.z)
-			upV = 0.0
-			originObj = new THREE.Vector3(mOrigin.x , mOrigin.y, mOrigin.z)
-			radius = mRadius // I have to think through how the radius switching should work, so far the results are bad
-			radObj = mRadius + gravField
-			character.quaternion.set(0, 0, 0, 1).normalize() // set quaternion back to identity
-			console.log("hit moon")
-			console.log(object.position)
+	for (var i = 0; i < numPlanets; i++) {
+		if (!originObj.equals(origins[i]) && character.position.distanceTo(origins[i]) < gravField + radii[i]) {
+				upV = 0.0
+				originObj = new THREE.Vector3(origins[i].x , origins[i].y, origins[i].z)
+				radius = radii[i] // I have to think through how the radius switching should work, so far the results are bad
+				radObj = radii[i]// + gravField
+										break;
+		}
+										console.log("origin loop: ");
+										console.log(i);
 	}
-			console.log(originObj)
+										
+										/**** old switch function ****
 	if (!originObj.equals(eOrigin) && character.position.distanceTo(eOrigin) < eRadius) {
 		console.log(originObj != eOrigin)
 		//object.lookAt(new THREE.Vector3(eOrigin))
@@ -242,7 +245,7 @@ window.onload = function init(){
 		originObj = new THREE.Vector3(eOrigin.x, eOrigin.y, eOrigin.z)
 		radius = eRadius
 		radObj = eRadius + gravField
-	}
+	} *****/
 	
 	if (rotVx < -0.005) {
 	rotVx += 0.001
@@ -331,7 +334,7 @@ window.addEventListener("keydown", function(e){
 			feet.rotateZ(Math.PI/2);
 		}
 		horizontal = false;
-			if (rotVy >= -0.05)
+			if (rotVy <= 0.05)
         rotVy += 0.015
 //	    object.quaternion.multiply(new THREE.Quaternion(Math.sin(0.01), 0, 0, Math.cos(0.01)));
 	}
