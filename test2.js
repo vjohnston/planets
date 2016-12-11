@@ -1,12 +1,15 @@
 "use strict";
 var scene;
-var camera;
+var cameraFol; // follow character
+var cameraLook; // look from a distance
+
 
 var xpos=0.0099;	// x position of object
 var ypos=0.0; 		// y position of object
 var zpos=0.53;		// z position of object
 var eRadius = 0.55;	// radius of earth
 var mRadius = 0.65/5; // scaled down by 5, but that seems too small
+var fRadius = 0.16; // just for fun
 var radObj = 0.53; // the radial position of the object (for the jumping)
 var radius = eRadius;
 
@@ -14,6 +17,8 @@ var object;		// object traversing planets
 var originObj = new THREE.Vector3(0, 0, 0);
 var eOrigin = new THREE.Vector3(0,0,0);
 var mOrigin = new THREE.Vector3(0.5, 0.5, 0.5);
+var fOrigin = new THREE.Vector3(0.7, -0.7, 0.7);
+
 var raycaster = new THREE.Raycaster();	// set up ray caster
 var earthMesh;
 var rotVx = 0.0; // rotational velocity around the current planet, left and right
@@ -22,9 +27,9 @@ var upV = 0.0;
 var gravField = 0.08;
 
 //arrays to loop through for gravity pull check
-var radii = [eRadius, mRadius];
-var origins = [eOrigin, mOrigin];
-var numPlanets = 2;
+var radii = [eRadius, mRadius, fRadius];
+var origins = [eOrigin, mOrigin, fOrigin];
+var numPlanets = 3;
 
 //var onPlanetA = 1.0;
 //var originLast
@@ -34,11 +39,44 @@ var numPlanets = 2;
 var character;
 var feet;
 
+var windowWidth, windowHeight;
+
 var horizontal = true;
 
+var renderer; // for updating views
+
+//Views:
+
+var views = [
+{
+						 left:0,
+						 bottom:0,
+						 width: 0.5,
+						 height: 1.0,
+						 background: new THREE.Color().setRGB(0.0, 0.0, 0.0), // TODO: set start background
+//						 eye: [0, 300, 1800 ],
+//						 up: [0, 1, 0],
+						 fov: 45,
+						 updateCamera: function ( camera, scene, position ) {
+							
+						 }
+},
+{
+						 left: 0.5,
+						 bottom: 0,
+						 width: 0.5,
+						 height: 1.0,
+						 background: new THREE.Color().setRGB(0.0, 0.0, 0.0),
+//						 up: [0, 1, 0],
+						 fov: 45,
+						 updateCamera: function( camera, scene, position) {
+							camera.lookAt(position)
+						 }
+}
+]
 window.onload = function init(){
 	// set up renderer
-	var renderer = new THREE.WebGLRenderer({
+	renderer = new THREE.WebGLRenderer({
 		antialias : true
 	});
 	renderer.setSize( window.innerWidth, window.innerHeight );
@@ -47,16 +85,18 @@ window.onload = function init(){
 	var onRenderFcts= [];
 
 
-	// set up scene and camera
+	// set up scene and cameras
 	scene	= new THREE.Scene();
-	camera	= new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.01, 100 );
-	camera.position.z = 3;
+	cameraFol	= new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.01, 100 );
+	cameraLook	= new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.01, 100 );
+	cameraLook.position.z = 3;
+	cameraFol.position.z = 3;
 
 	// add ambient lighting
 	var ambientLight = new THREE.AmbientLight( 0x222222, 1)
 	scene.add( ambientLight )
   // add directional lighting
-	var dirLight = new THREE.DirectionalLight( 0xffffff, 1 )
+	var dirLight = new THREE.DirectionalLight( 0xaaaaaa, 1 )
 	dirLight.position.set(5,5,5)
 	scene.add( dirLight )
 	
@@ -117,6 +157,17 @@ window.onload = function init(){
 	moon.castShadow	= true
 	scene.add(moon)
 	
+	var funGeometry = new THREE.SphereGeometry(fRadius, 24, 24)
+	var funMaterial = new THREE.MeshPhongMaterial({
+																								map	: THREE.ImageUtils.loadTexture('threex_textures/moonmap1k.jpg'),
+																								bumpMap	: THREE.ImageUtils.loadTexture('threex_textures/moonbump1k.jpg'),
+																								bumpScale: 0.002,
+																								})
+	var fun = new THREE.Mesh(funGeometry, funMaterial)
+	fun.position.set(fOrigin.x, fOrigin.y, fOrigin.z)
+	fun.receiveShadow	= true
+	fun.castShadow	= true
+	scene.add(fun)
 
 	// character
 	character = new THREE.Object3D()
@@ -145,10 +196,13 @@ window.onload = function init(){
 	character.add(object)
   	//camera.position.y = -1
  	/****comment below to stop camera moving with the object****/
-  	object.add(camera)
- 	camera.position.y = -2.5
- 	camera.lookAt(object.position)
-  	camera.useQuaternion = false // so it does not undergo the same rotations as the ball
+	object.add(cameraFol);
+	views[0].camera = cameraFol;
+	views[1].camera = cameraLook;
+	//object.add(views[0].camera)
+ 	views[0].camera.position.y = -2.5
+ 	views[0].camera.lookAt(object.position)
+
 	//originObj = new THREE.Vector3(origin.x, origin.y, origin.z)
  
 	// feet
@@ -182,16 +236,50 @@ window.onload = function init(){
 
 
 
-
+	function updateSize() {
+		
+		if ( windowWidth != window.innerWidth || windowHeight != window.innerHeight ) {
+			
+			windowWidth  = window.innerWidth;
+			windowHeight = window.innerHeight;
+			
+			renderer.setSize ( windowWidth, windowHeight );
+			
+		}
+		
+	}
+	
 	// ***** CODE BELOW AND CLOUD SET UP TAKEN FROM THREEX.PLANETS **** //
 
+	
+	
 	onRenderFcts.push(function(delta, now){
-		//camera.position.x = (xpos)
-		//camera.position.y = (ypos)
-//		camera.position.x += (mouse.x*5 - camera.position.x) * (delta*3)
-//		camera.position.y += (mouse.y*5 - camera.position.y) * (delta*3)
- /***comment below and uncomment above to see the original mouse driven camera****/
-  //camera.lookAt( object.position ) // this was making me motion sick
+
+	updateSize();
+	//Update view:
+	for (var i = 0; i < views.length; i++) {
+		
+										
+		var view = views[i];
+		var camera = view.camera;
+		
+		view.updateCamera( camera, scene, object.position);
+		
+		var left   = Math.floor( windowWidth  * view.left );
+		var bottom = Math.floor( windowHeight * view.bottom );
+		var width  = Math.floor( windowWidth  * view.width );
+		var height = Math.floor( windowHeight * view.height );
+		renderer.setViewport( left, bottom, width, height );
+		renderer.setScissor( left, bottom, width, height );
+		renderer.setScissorTest( true );
+		renderer.setClearColor( view.background );
+		
+		camera.aspect = width / height;
+		camera.updateProjectionMatrix();
+		
+		renderer.render( scene, camera );
+	}
+										
 										
 	if (rotVx != 0) {
 	character.quaternion.multiply(new THREE.Quaternion(0, Math.sin(rotVx*radius/radObj), 0, Math.cos(rotVx*radius/radObj)));
@@ -270,9 +358,9 @@ window.onload = function init(){
 	})
 	
 	// render scene
-	onRenderFcts.push(function(){
-		renderer.render( scene, camera );		
-	})
+//	onRenderFcts.push(function(){
+//		renderer.render( scene, camera );		
+//	})
 
 	// loop runner
 	var lastTimeMsec= null
