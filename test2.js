@@ -26,6 +26,10 @@ var originLast
 var originNext
 var lookVector = new THREE.Vector3(0, 0, 0)
 
+var character;
+var feet;
+
+var horizontal = true;
 
 window.onload = function init(){
 	// set up renderer
@@ -109,6 +113,11 @@ window.onload = function init(){
 	scene.add(moon)
 	
 
+	// character
+	character = new THREE.Object3D()
+	character.position.z = zpos
+	scene.add(character)
+
 	// create another object
 	var objectGeometry	= new THREE.SphereGeometry(0.1, 32, 32)
 	var objectMaterial	= new THREE.MeshPhongMaterial({
@@ -117,22 +126,48 @@ window.onload = function init(){
 		bumpScale: 0.005,
 	})
 	object = new THREE.Mesh(objectGeometry, objectMaterial)
-	object.position.setX(xpos)
-	object.position.setY(ypos)
-	object.position.setZ(zpos)
+	character.position.setX(xpos);
+	character.position.setY(ypos);
+	character.position.setZ(zpos);
+	object.position.setX(0)
+	object.position.setY(0.02)
+	object.position.setZ(0)
  	object.up.set(xpos, ypos, zpos)
 	object.scale.multiplyScalar(1/5)
 	object.receiveShadow	= true
 	object.castShadow	= true
-	scene.add(object)
-  //camera.position.y = -1
+	//scene.add(object)
+	character.add(object)
+  	//camera.position.y = -1
  	/****comment below to stop camera moving with the object****/
-  object.add(camera)
+  	object.add(camera)
  	camera.position.y = -2.5
  	camera.lookAt(object.position)
-  camera.useQuaternion = false // so it does not undergo the same rotations as the ball
+  	camera.useQuaternion = false // so it does not undergo the same rotations as the ball
 	//originObj = new THREE.Vector3(origin.x, origin.y, origin.z)
  
+	// feet
+	var foot = new THREE.SphereGeometry(0.008, 32, 32);
+	feet = new THREE.Object3D();
+	/*feet = {
+		left: new THREE.Mesh(foot, objectMaterial),
+		right: new THREE.Mesh(foot, objectMaterial)
+	};*/
+	var left = new THREE.Mesh(foot, objectMaterial);
+	var right = new THREE.Mesh(foot, objectMaterial);
+	feet.position.setX(0)
+	feet.position.setY(0)
+	feet.position.setZ(0)
+	left.position.x = 0.0;
+	left.position.y = 0.02;
+	left.position.z = 0.0;
+	right.position.x = 0.0;
+	right.position.y = -0.02;
+	right.position.z = 0.0;
+	character.add(feet);
+	feet.add(left);
+	feet.add(right);
+
 	// camera control
 	var mouse	= {x : 0, y : 0}
 	document.addEventListener('mousemove', function(event){
@@ -154,25 +189,27 @@ window.onload = function init(){
   //camera.lookAt( object.position ) // this was making me motion sick
 										
 	if (rotVx != 0) {
-	object.quaternion.multiply(new THREE.Quaternion(0, Math.sin(rotVx*radius/radObj), 0, Math.cos(rotVx*radius/radObj)));
+	character.quaternion.multiply(new THREE.Quaternion(0, Math.sin(rotVx*radius/radObj), 0, Math.cos(rotVx*radius/radObj)));
 	}
 	
 	if (rotVy != 0) {
-	object.quaternion.multiply(new THREE.Quaternion(Math.sin(rotVy*radius/radObj), 0, 0, Math.cos(rotVy*radius/radObj)));
+	character.quaternion.multiply(new THREE.Quaternion(Math.sin(rotVy*radius/radObj), 0, 0, Math.cos(rotVy*radius/radObj)));
 										// the radius/radobj factor makes it closer to linear velocity, at least while jumping
 	}
+
+
 	// to do, make this equations better so we increase the linear velocity rather than radial velocity at a constant speed, that
 										// will make jumping and moving to planets much better
-	var qx = object.quaternion.x;
-	var qy = object.quaternion.y;
-	var qz = object.quaternion.z;
-	var qw = object.quaternion.w;
+	var qx = character.quaternion.x;
+	var qy = character.quaternion.y;
+	var qz = character.quaternion.z;
+	var qw = character.quaternion.w;
 	xpos = 2 * (qy * qw + qz * qx) * radObj + originObj.x; // trying to just translate
 	ypos = 2 * (qz * qy - qw * qx) * radObj + originObj.y;
 	zpos = ((qz * qz + qw * qw) - (qx * qx + qy * qy))* radObj + originObj.z;
-	object.position.setX(xpos);
-	object.position.setY(ypos);
-	object.position.setZ(zpos);
+	character.position.setX(xpos);
+	character.position.setY(ypos);
+	character.position.setZ(zpos);
 	console.log(object.position)
 										
 	if (onPlanetA < 1.0) {
@@ -181,7 +218,7 @@ window.onload = function init(){
 	 onPlanetA += 0.002
 	}
 	// set new origin
-	if (!originObj.equals(mOrigin) && object.position.distanceTo(mOrigin) < gravField + mRadius) {
+	if (!originObj.equals(mOrigin) && character.position.distanceTo(mOrigin) < gravField + mRadius) {
 			// point towards moon
 			onPlanetA = 0.0
 		//	object.position.set(mOrigin)
@@ -191,12 +228,12 @@ window.onload = function init(){
 			originObj = new THREE.Vector3(mOrigin.x , mOrigin.y, mOrigin.z)
 			radius = mRadius // I have to think through how the radius switching should work, so far the results are bad
 			radObj = mRadius + gravField
-			object.quaternion.set(0, 0, 0, 1).normalize() // set quaternion back to identity
+			character.quaternion.set(0, 0, 0, 1).normalize() // set quaternion back to identity
 			console.log("hit moon")
 			console.log(object.position)
 	}
 			console.log(originObj)
-	if (!originObj.equals(eOrigin) && object.position.distanceTo(eOrigin) < eRadius) {
+	if (!originObj.equals(eOrigin) && character.position.distanceTo(eOrigin) < eRadius) {
 		console.log(originObj != eOrigin)
 		//object.lookAt(new THREE.Vector3(eOrigin))
 		originLast = new THREE.Vector3(mOrigin.x, mOrigin.y, mOrigin.z)
@@ -260,29 +297,45 @@ window.addEventListener("keydown", function(e){
 	}
 												
   if (e.keyCode === 37){ // left
+  		if (!horizontal){
+  			feet.rotateZ(Math.PI/2);
+  		}
+  		horizontal = true;
       if (rotVx >= -0.08)
           rotVx -= 0.015
 //	    object.quaternion.multiply(new THREE.Quaternion(0, Math.sin(-0.01), 0, Math.cos(-0.01)));
 	}
 
 	if (e.keyCode === 39) { // right
+		if (!horizontal){
+  			feet.rotateZ(Math.PI/2);
+  		}
+		horizontal = true;
       if (rotVx <= 0.08)
           rotVx += 0.015
 //	    object.quaternion.multiply(new THREE.Quaternion(0, Math.sin(0.01), 0, Math.cos(0.01)));
 	}
 
 	if (e.keyCode === 38) { // up
+		if (horizontal){
+			feet.rotateZ(Math.PI/2);
+		}
+		horizontal = false;
       if (rotVy >= -0.08)
 				 rotVy -= 0.015;
 //	    object.quaternion.multiply(new THREE.Quaternion(Math.sin(-0.01), 0, 0, Math.cos(-0.01)));
 	}
 
 	if (e.keyCode === 40) { // down
+		if (horizontal){
+			feet.rotateZ(Math.PI/2);
+		}
+		horizontal = false;
 			if (rotVy >= -0.08)
         rotVy += 0.015
 //	    object.quaternion.multiply(new THREE.Quaternion(Math.sin(0.01), 0, 0, Math.cos(0.01)));
 	}
-												
+
 });
 
 function setUpClouds(){
