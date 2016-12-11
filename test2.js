@@ -5,8 +5,8 @@ var camera;
 var xpos=0.0099;	// x position of object
 var ypos=0.0; 		// y position of object
 var zpos=0.53;		// z position of object
-var eRadius = 0.53;	// radius of earth
-var mRadius = 0.60/5; // scaled down by 5, but that seems too small
+var eRadius = 0.55;	// radius of earth
+var mRadius = 0.65/5; // scaled down by 5, but that seems too small
 var radObj = 0.53; // the radial position of the object (for the jumping)
 var radius = eRadius;
 
@@ -260,25 +260,25 @@ window.addEventListener("keydown", function(e){
 	}
 												
   if (e.keyCode === 37){ // left
-      if (rotVx >= -0.08)
+      if (rotVx >= -0.05)
           rotVx -= 0.015
 //	    object.quaternion.multiply(new THREE.Quaternion(0, Math.sin(-0.01), 0, Math.cos(-0.01)));
 	}
 
 	if (e.keyCode === 39) { // right
-      if (rotVx <= 0.08)
+      if (rotVx <= 0.05)
           rotVx += 0.015
 //	    object.quaternion.multiply(new THREE.Quaternion(0, Math.sin(0.01), 0, Math.cos(0.01)));
 	}
 
 	if (e.keyCode === 38) { // up
-      if (rotVy >= -0.08)
+      if (rotVy >= -0.05)
 				 rotVy -= 0.015;
 //	    object.quaternion.multiply(new THREE.Quaternion(Math.sin(-0.01), 0, 0, Math.cos(-0.01)));
 	}
 
 	if (e.keyCode === 40) { // down
-			if (rotVy >= -0.08)
+			if (rotVy >= -0.05)
         rotVy += 0.015
 //	    object.quaternion.multiply(new THREE.Quaternion(Math.sin(0.01), 0, 0, Math.cos(0.01)));
 	}
