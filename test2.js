@@ -11,7 +11,7 @@ var eRadius = 0.55;	// radius of earth
 var mRadius = 0.65/5; // scaled down by 5, but that seems too small
 var fRadius = 0.16; // just for fun
 var radObj = 0.53; // the radial position of the object (for the jumping)
-var radius = eRadius;
+var radius = eRadius; // the fixed radius, which the object will land on as ground
 
 var object;		// object traversing planets
 var originObj = new THREE.Vector3(0, 0, 0);
@@ -19,8 +19,6 @@ var eOrigin = new THREE.Vector3(0,0,0);
 var mOrigin = new THREE.Vector3(0.5, 0.5, 0.5);
 var fOrigin = new THREE.Vector3(0.7, -0.7, 0.7);
 
-var raycaster = new THREE.Raycaster();	// set up ray caster
-var earthMesh;
 var rotVx = 0.0; // rotational velocity around the current planet, left and right
 var rotVy = 0.0;
 var upV = 0.0;
@@ -31,17 +29,12 @@ var radii = [eRadius, mRadius, fRadius];
 var origins = [eOrigin, mOrigin, fOrigin];
 var numPlanets = 3;
 
-//var onPlanetA = 1.0;
-//var originLast
-//var originNext
-//var lookVector = new THREE.Vector3(0, 0, 0)
-
-var character;
+var character; // two containers
 var feet;
 
 var windowWidth, windowHeight;
 
-var horizontal = true;
+var horizontal = true; // feet position, horizontal or vertical
 
 var renderer; // for updating views
 
@@ -54,8 +47,6 @@ var views = [
 						 width: 0.5,
 						 height: 1.0,
 						 background: new THREE.Color().setRGB(0.0, 0.0, 0.0), // TODO: set start background
-//						 eye: [0, 300, 1800 ],
-//						 up: [0, 1, 0],
 						 fov: 45,
 						 updateCamera: function ( camera, scene, position ) {
 							
@@ -67,7 +58,6 @@ var views = [
 						 width: 0.5,
 						 height: 1.0,
 						 background: new THREE.Color().setRGB(0.0, 0.0, 0.0),
-//						 up: [0, 1, 0],
 						 fov: 45,
 						 updateCamera: function( camera, scene, position) {
 							camera.lookAt(position)
@@ -303,13 +293,7 @@ window.onload = function init(){
 	character.position.setX(xpos);
 	character.position.setY(ypos);
 	character.position.setZ(zpos);
-//	console.log(object.position)
 										
-//	if (onPlanetA < 1.0) {
-//	// originObj.lerpVectors(originNext, originLast, onPlanetA)
-//	 //radObj = onPlanetA * radius
-//	 onPlanetA += 0.002
-//	}
 	// set new origin
 	for (var i = 0; i < numPlanets; i++) {
 		if (!originObj.equals(origins[i]) && character.position.distanceTo(origins[i]) < gravField + radii[i]) {
@@ -319,22 +303,9 @@ window.onload = function init(){
 				radObj = radii[i]// + gravField
 										break;
 		}
-										console.log("origin loop: ");
-										console.log(i);
 	}
-										
-										/**** old switch function ****
-	if (!originObj.equals(eOrigin) && character.position.distanceTo(eOrigin) < eRadius) {
-		console.log(originObj != eOrigin)
-		//object.lookAt(new THREE.Vector3(eOrigin))
-		originLast = new THREE.Vector3(mOrigin.x, mOrigin.y, mOrigin.z)
-		originNext = new THREE.Vector3(eOrigin.x, eOrigin.y, eOrigin.z)
-		upV = 0.0
-		originObj = new THREE.Vector3(eOrigin.x, eOrigin.y, eOrigin.z)
-		radius = eRadius
-		radObj = eRadius + gravField
-	} *****/
 	
+	//clamp x
 	if (rotVx < -0.005) {
 	rotVx += 0.001
 	} else if (rotVx > 0.005) {
@@ -342,6 +313,8 @@ window.onload = function init(){
 	} else {
 		rotVx = 0
 	} // clamp down to zero to prevent drifting
+				
+	// clamp y
 	if (rotVy < -0.005) {
 	rotVy += 0.001
 	} else if (rotVy > 0.005) {
@@ -351,16 +324,12 @@ window.onload = function init(){
 	}
 										
 	if (radObj > radius) {
-		upV -= 0.005 // the downwards
+		upV -= 0.005 // fall downwards
 		radObj += upV
 	}
 								
-	})
+	}) // end render function
 	
-	// render scene
-//	onRenderFcts.push(function(){
-//		renderer.render( scene, camera );		
-//	})
 
 	// loop runner
 	var lastTimeMsec= null
