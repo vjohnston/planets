@@ -16,14 +16,14 @@ var horizontal = true;	// keeps track which direction character is moving
 var originObj = new THREE.Vector3(0, 0, 0);	// object original position
 
 // planets
-var eRadius = 0.55;		// radius of earth
-var mRadius = 0.13; 	// radius of moon scaled down by 5 form earth
-var fRadius = 0.16; 	// just for fun
-var radObj = eRadius; 		// the radial position of the object (for the jumping)
-var radius = eRadius;	// current radius
-var eOrigin = new THREE.Vector3(0,0,0);			// origin of earth
-var mOrigin = new THREE.Vector3(0.5, 0.5, 0.5);	// origin of moon
-var fOrigin = new THREE.Vector3(0.7, -0.7, 0.7);// origin of fun
+var eRadius = 0.55;		// radius of planet e
+var mRadius = 0.13; 	// radius of planet m
+var fRadius = 0.16; 	// radius of planet f
+var xRadius = 0.20;		// radius of planet x
+var eOrigin = new THREE.Vector3(0,0,0);			// origin of planet e
+var mOrigin = new THREE.Vector3(0.5, 0.5, 0.5);	// origin of planet m
+var fOrigin = new THREE.Vector3(0.7, -0.7, 0.7);// origin of planet f
+var xOrigin = new THREE.Vector3(-0.5, -0.8, 0.6);
 
 // speed and raycaster
 var raycaster = new THREE.Raycaster();	// set up ray caster
@@ -33,12 +33,15 @@ var upV = 0.0;			// up velocity
 var gravField = 0.08;	// gravitational fireld 
 
 // planet arrays
-var radii = [eRadius, mRadius, fRadius];	// planet radii 
-var origins = [eOrigin, mOrigin, fOrigin];	// planet origins
-var textures = ['threex_textures/earthmap1k.jpg','threex_textures/moonmap1k.jpg','threex_textures/moonmap1k.jpg'];
-var bumpMaps = ['threex_textures/earthbump1k.jpg','threex_textures/moonbump1k.jpg','threex_textures/moonbump1k.jpg'];
-var numPlanets = 3;							// number of planets
+var radii = [eRadius, mRadius, fRadius, xRadius];	// planet radii 
+var origins = [eOrigin, mOrigin, fOrigin, xOrigin];	// planet origins
+var textures = ['textures/earthmap1k.jpg','textures/moonmap1k.jpg','textures/moonmap1k.jpg','textures/earthmap1k.jpg'];
+var bumpMaps = ['textures/earthbump1k.jpg','textures/moonbump1k.jpg','textures/moonbump1k.jpg','textures/earthbump1k.jpg'];
+var numPlanets = 4;							// number of planets
 
+// current radius - object starts on ePlanet
+var radius = eRadius;	// current radius
+var radObj = eRadius; 	// the radial position of the object (for the jumping)
 
 // views for the two screens
 var views = [
@@ -355,64 +358,3 @@ window.addEventListener("keydown", function(e){
         	rotVy += 0.015
 	}
 });
-
-
-
-// this function is taken from THREEX.planets
-function setUpClouds(){
-	// create destination canvas
-	var canvasResult	= document.createElement('canvas')
-	canvasResult.width	= 1024
-	canvasResult.height	= 512
-	var contextResult	= canvasResult.getContext('2d')		
-
-	// load earthcloudmap
-	var imageMap	= new Image();
-	imageMap.addEventListener("load", function() {
-		
-		// create dataMap ImageData for earthcloudmap
-		var canvasMap	= document.createElement('canvas')
-		canvasMap.width	= imageMap.width
-		canvasMap.height= imageMap.height
-		var contextMap	= canvasMap.getContext('2d')
-		contextMap.drawImage(imageMap, 0, 0)
-		var dataMap	= contextMap.getImageData(0, 0, canvasMap.width, canvasMap.height)
-
-		// load earthcloudmaptrans
-		var imageTrans	= new Image();
-		imageTrans.addEventListener("load", function(){
-			// create dataTrans ImageData for earthcloudmaptrans
-			var canvasTrans		= document.createElement('canvas')
-			canvasTrans.width	= imageTrans.width
-			canvasTrans.height	= imageTrans.height
-			var contextTrans	= canvasTrans.getContext('2d')
-			contextTrans.drawImage(imageTrans, 0, 0)
-			var dataTrans		= contextTrans.getImageData(0, 0, canvasTrans.width, canvasTrans.height)
-			// merge dataMap + dataTrans into dataResult
-			var dataResult		= contextMap.createImageData(canvasMap.width, canvasMap.height)
-			for(var y = 0, offset = 0; y < imageMap.height; y++){
-				for(var x = 0; x < imageMap.width; x++, offset += 4){
-					dataResult.data[offset+0]	= dataMap.data[offset+0]
-					dataResult.data[offset+1]	= dataMap.data[offset+1]
-					dataResult.data[offset+2]	= dataMap.data[offset+2]
-					dataResult.data[offset+3]	= 255 - dataTrans.data[offset+0]
-				}
-			}
-			// update texture with result
-			contextResult.putImageData(dataResult,0,0)	
-			material.map.needsUpdate = true;
-		})
-		imageTrans.src	= 'threex_textures/earthcloudmaptrans.jpg';
-	}, false);
-	imageMap.src	= 'threex_textures/earthcloudmap.jpg';
-
-	var geometry	= new THREE.SphereGeometry(0.51, 32, 32)
-	var material	= new THREE.MeshPhongMaterial({
-		map		: new THREE.Texture(canvasResult),
-		side		: THREE.DoubleSide,
-		transparent	: true,
-		opacity		: 0.8,
-	})
-	var mesh	= new THREE.Mesh(geometry, material)
-	return mesh	
-}
