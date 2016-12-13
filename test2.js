@@ -140,7 +140,7 @@ window.onload = function init(){
 	character.position.setZ(zpos);
 	object.position.setX(0)
 	object.position.setY(0.02)
-	object.position.setZ(0)
+	object.position.setZ(0.03)
  	object.up.set(xpos, ypos, zpos)
 	object.scale.multiplyScalar(1/5)
 	object.receiveShadow	= true
@@ -159,15 +159,15 @@ window.onload = function init(){
 	feet = new THREE.Object3D();
 	var left = new THREE.Mesh(foot, objectMaterial);
 	var right = new THREE.Mesh(foot, objectMaterial);
-	feet.position.setX(0)
-	feet.position.setY(0)
-	feet.position.setZ(0)
+	feet.position.setX(0.0)
+	feet.position.setY(0.02)
+	feet.position.setZ(0.01)
 	left.position.x = 0.0;
 	left.position.y = 0.02;
-	left.position.z = 0.0;
+	left.position.z = 0.005;
 	right.position.x = 0.0;
 	right.position.y = -0.02;
-	right.position.z = 0.0;
+	right.position.z = -0.005;
 	character.add(feet);
 	feet.add(left);
 	feet.add(right);
@@ -245,6 +245,11 @@ window.onload = function init(){
 		character.position.setY(ypos);
 		character.position.setZ(zpos);
 
+		if (horizontal) {
+			feet.rotateY(rotVx * 5)
+		} else {
+			feet.rotateY(-rotVy * 5)
+		} // spin feet as the character moves
 
 		// go through the array of all planets and see if the character should be pulled in by any of grav fields
 		for (var i = 0; i < numPlanets; i++) {
@@ -259,16 +264,16 @@ window.onload = function init(){
 											
 		// speed up or slow down based on x and velocities
 		if (rotVx < -0.005) {
-			rotVx += 0.001
+			rotVx += 0.0024
 		} else if (rotVx > 0.005) {
-			rotVx -= 0.001
+			rotVx -= 0.0024
 		} else {
 			rotVx = 0
 		} // clamp down to zero to prevent drifting
 		if (rotVy < -0.005) {
-			rotVy += 0.001
+			rotVy += 0.0024
 		} else if (rotVy > 0.005) {
-			rotVy -= 0.001
+			rotVy -= 0.0024
 		} else {
 			rotVy = 0
 		}
@@ -305,8 +310,8 @@ window.addEventListener("keydown", function(e){
 	// space - jump
 	if (e.keyCode == 32){
 		if (radObj <= radius) {
-			upV = 0.1 // launch upwards
-			radObj += upV
+			upV = 0.1; // launch upwards
+			radObj += upV;
 		}
 	}
 			
@@ -314,47 +319,54 @@ window.addEventListener("keydown", function(e){
   	if (e.keyCode === 37){ 
   		// if not moving horizontal before, turn object
   		if (!horizontal){
-  			feet.rotateZ(Math.PI/2);
+				feet.rotation.set(0, 0, 0); // set back to first position
+
   		}
   		horizontal = true;
   		// decrease x velocity
-	    if (rotVx >= -0.05)
-	        rotVx -= 0.015
+			if (rotVx >= -0.05) {
+				rotVx -= 0.015;
+			}
 	}
 
 	// right 
 	if (e.keyCode === 39) {
 		// if not moving horizontal before, turn object
 		if (!horizontal){
-  			feet.rotateZ(Math.PI/2);
+				feet.rotation.set(0, 0, 0); // set back to original position
   		}
 		horizontal = true;
 		// increase x velocity
-      	if (rotVx <= 0.05)
-        	rotVx += 0.015
+		if (rotVx <= 0.05) {
+			rotVx += 0.015;
+		}
 	}
 
 	// up
 	if (e.keyCode === 38) { 
 		// if moving horizontal before, turn object
 		if (horizontal){
+			feet.rotation.set(0, 0, 0); // set back to first position then rotate 90
 			feet.rotateZ(Math.PI/2);
 		}
 		horizontal = false;
 		// decrease y velocity
-     	if (rotVy >= -0.05)
+		if (rotVy >= -0.05){
 			rotVy -= 0.015;
+		}
 	}
 
 	// down
 	if (e.keyCode === 40) {
 		// if moving horizontal before, turn object
 		if (horizontal){
+			feet.rotation.set(0, 0, 0); // set back to first position then rotate
 			feet.rotateZ(Math.PI/2);
 		}
 		horizontal = false;
 		// increase y velocity
-		if (rotVy <= 0.05)
-        	rotVy += 0.015
+		if (rotVy <= 0.05) {
+			rotVy += 0.015;
+		}
 	}
 });
