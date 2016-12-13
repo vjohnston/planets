@@ -35,8 +35,8 @@ var gravField = 0.08;	// gravitational fireld
 // planet arrays
 var radii = [eRadius, mRadius, fRadius, xRadius];	// planet radii 
 var origins = [eOrigin, mOrigin, fOrigin, xOrigin];	// planet origins
-var textures = ['textures/earthmap1k.jpg','textures/moonmap1k.jpg','textures/moonmap1k.jpg','textures/earthmap1k.jpg'];
-var bumpMaps = ['textures/earthbump1k.jpg','textures/moonbump1k.jpg','textures/moonbump1k.jpg','textures/earthbump1k.jpg'];
+var textures = ['textures/Texture1.jpg','textures/Texture2.jpg','textures/Texture3.jpg','textures/Texture6.jpg'];
+var bumpMaps = ['textures/Bump1.jpg','textures/Bump2.jpg','textures/Bump3.jpg','textures/Bump6.jpg'];
 var numPlanets = 4;							// number of planets
 
 // current radius - object starts on ePlanet
@@ -88,7 +88,7 @@ window.onload = function init(){
 	cameraFol.position.z = 3;
 
 	// add ambient lighting
-	var ambientLight = new THREE.AmbientLight( 0x222222, 1)
+	var ambientLight = new THREE.AmbientLight( 0x222222, 2)
 	scene.add( ambientLight )
   	// add directional lighting
 	var dirLight = new THREE.DirectionalLight( 0xaaaaaa, 1 )
@@ -98,7 +98,7 @@ window.onload = function init(){
 
 	// set up background
 	var backgroundMaterial = new THREE.MeshBasicMaterial({
-		map	: THREE.ImageUtils.loadTexture('threex_textures/galaxy_starfield.png'),
+		map	: THREE.ImageUtils.loadTexture('textures/galaxy_starfield.png'),
 		side	: THREE.BackSide
 	})
 	var backgroundGeometry	= new THREE.SphereGeometry(100, 32, 32)
@@ -130,7 +130,7 @@ window.onload = function init(){
 	// create object - character body
 	var objectGeometry	= new THREE.SphereGeometry(0.1, 32, 32)
 	var objectMaterial	= new THREE.MeshPhongMaterial({
-		map	: THREE.ImageUtils.loadTexture('textures/planet.jpg'),
+		map	: THREE.ImageUtils.loadTexture('textures/character.jpg'),
 		bumpMap	: THREE.ImageUtils.loadTexture('textures/paper.jpg'),
 		bumpScale: 0.005,
 	})
